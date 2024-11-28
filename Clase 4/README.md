@@ -30,7 +30,7 @@ Reto - 90 % de Acurrancy
 Se evidencia que a pesar de que se llega a un modelo muchísimo más simple que el modelo inicial, el resultado a nivel de metricas de rendimiento es el mismo a nivel de preisión. A nivel de las metricas "loss" en entrenamiento y validación, estas si presentaron cambios leves conforme se variaba el modelo. En algunos casos la metrica "loss" en entrenamiento y validación tienden a converger al mismo valor más rapidamente (menos epocas para converger al mismo valor). Sin embargo, la presición, que es el valor que más se desea sea cercano a uno, no se modificó. Esto indica que la limitación del rendimiento de la red neuronal no se debe a la complejidad de la misma. 
 
     - Dado lo anterior, se intuyen 2 cosas:
-      - El problema puede deberse a una mala presentación de los datso (imagenes) y por ende no es posible obtener un mejor resultado.
+      - El problema puede deberse a una mala presentación de los datos (imagenes) y por ende no es posible obtener un mejor resultado.
       - El problema puede deberse factores como las capas de pooling, los parámetros de entrenamiento, las funciones de activación o un posible preprocesamiento de losdatso erroneo o incompleto.
 
 - Se verifican las funciones de activación utilizadas: para las capas de entrada e intermedias, se tiene la función de activación tangente hiperbolica. La literatura indica que esta función puede limitar el "performance" de estas redes neuronales en muchos casos. Normalmente se utiliza la función Relu, ya que generalente generaliza mejor para aplicaciones en deep learning.
