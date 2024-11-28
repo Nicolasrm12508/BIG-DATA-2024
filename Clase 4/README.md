@@ -94,7 +94,7 @@ Se evidencia que a pesar de que se llega a un modelo muchísimo más simple que 
 
   - Por ultimo, se verifica el codigo inicial, y se verifica que el procesamiento de la infrmacion es correcto, ya que los datos de la imagen estan normalizados correctamente (se divide entre 255) y se leen las imagenes de la misma forma en la que están distribuidas originalemnte en el dataset.
 
-En conclusión, se verificaron y modificaron convenientemente un buena cantidad de parámetros de la red convolucional con el fin de encontrar un mejor modelo. Sin embargo, el resultado siempre se mantuvo exactamente igual. Lo que indica que el problema está fundamentalmente en la base de datos. 
+En conclusión, se verificaron y modificaron convenientemente un buena cantidad de parámetros de la red convolucional con el fin de encontrar un mejor modelo. Sin embargo, el resultado siempre se mantuvo exactamente igual. Lo que indica que el problema está fundamentalmente en la base de datos. El error puede deberse a un mal etiquetamiento de las clases, lo que quiere decir que, por ejemplo, una clase esté totalmente mal etiquetada, y por eso es imposible que el error pueda mejorar del un tope, restringido por la cantidad de datos mal etiquetados en los datos de validación.
   
 
 
