@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hand Detection</title>
+
+  <!-- Import MediaPipe and Drawing Utilities -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+  <!-- Minimal CSS to center video and canvas -->
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    video,
+    canvas {
+      position: absolute;
+      transform: rotateY(180deg);
+    }
+
+    /* Mirror video and canvas */
+  </style>
+</head>
+
+<body>
+  <!-- Video Element with Pre-uploaded Video -->
+  <video id="video" autoplay playsinline loop muted>
+    <source src="mano_bien_4.mp4" type="video/mp4"> <!-- Asegúrate de que este video esté en la misma carpeta que el HTML -->
+    Tu navegador no soporta el formato de video.
+  </video>
+  <canvas id="output_canvas"></canvas>
+
+  <script type="module">
+    import { HandLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
+
+    let handLandmarker; // Hand landmark detection instance
+    let runningMode = "VIDEO"; // Set running mode to video for real-time detection
+    let lastVideoTime = -1; // Track video frame timing
+
+    // Initialize hand landmark detector
+    const initializeHandLandmarker = async () => {
+      const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
+      handLandmarker = await HandLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+          delegate: "GPU"
+        },
+        runningMode: runningMode,
+        numHands: 2
+      });
+    };
+
+    initializeHandLandmarker(); // Initialize landmarker
+
+    const video = document.getElementById("video"); // Video element
+    const canvas = document.getElementById("output_canvas"); // Canvas for drawing landmarks
+    const canvasCtx = canvas.getContext("2d");
+
+    // Function to calculate the cosine of the angle between two vectors
+    function calculateCosine(v1, v2) {
+      const dotProduct = v1.x * v2.x + v1.y * v2.y;
+      const magnitude1 = Math.sqrt(v1.x * v1.x + v1.y * v1.y);
+      const magnitude2 = Math.sqrt(v2.x * v2.x + v2.y * v2.y);
+      return dotProduct / (magnitude1 * magnitude2);
+    }
+
+    // Function to draw a vector from a start point to an end point
+    function drawVector(start, end, color) {
+      const startX = start.x * canvas.width;
+      const startY = start.y * canvas.height;
+      const endX = end.x * canvas.width;
+      const endY = end.y * canvas.height;
+
+      canvasCtx.strokeStyle = color;
+      canvasCtx.lineWidth = 2;
+      canvasCtx.beginPath();
+      canvasCtx.moveTo(startX, startY);
+      canvasCtx.lineTo(endX, endY);
+      canvasCtx.stroke();
+    }
+
+    // Detect landmarks from the video file
+    async function predictVideo() {
+      // Ensure canvas matches video dimensions
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      if (handLandmarker && video.currentTime !== lastVideoTime) {
+        lastVideoTime = video.currentTime;
+
+        // Detect hand landmarks in the current video frame
+        const results = await handLandmarker.detectForVideo(video, performance.now());
+
+        // Clear the canvas before each frame
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // If landmarks are detected, iterate through them
+        if (results.landmarks) {
+          for (const landmarks of results.landmarks) {
+            // Obtener los puntos para los vectores cortos de cada dedo
+            const vectors = {
+              thumb: { start: landmarks[2], end: landmarks[3] },
+              index: { start: landmarks[6], end: landmarks[7] },
+              middle: { start: landmarks[10], end: landmarks[11] },
+              ring: { start: landmarks[14], end: landmarks[15] },
+              pinky: { start: landmarks[18], end: landmarks[19] }
+            };
+
+            // Dibujar los vectores de los dedos
+            drawVector(vectors.thumb.start, vectors.thumb.end, "#FF6347"); // Pulgar (rojo)
+            drawVector(vectors.index.start, vectors.index.end, "#32CD32"); // Índice (verde)
+            drawVector(vectors.middle.start, vectors.middle.end, "#1E90FF"); // Medio (azul)
+            drawVector(vectors.ring.start, vectors.ring.end, "#FFD700"); // Anular (amarillo)
+            drawVector(vectors.pinky.start, vectors.pinky.end, "#8A2BE2"); // Meñique (púrpura)
+
+            // Obtener el vector del índice
+            const indexVector = {
+              x: vectors.index.end.x - vectors.index.start.x,
+              y: vectors.index.end.y - vectors.index.start.y
+            };
+
+            // Calcular los cosenos entre el vector del índice y los demás dedos
+            const cosThumb = calculateCosine(indexVector, {
+              x: vectors.thumb.end.x - vectors.thumb.start.x,
+              y: vectors.thumb.end.y - vectors.thumb.start.y
+            });
+
+            const cosMiddle = calculateCosine(indexVector, {
+              x: vectors.middle.end.x - vectors.middle.start.x,
+              y: vectors.middle.end.y - vectors.middle.start.y
+            });
+
+            const cosRing = calculateCosine(indexVector, {
+              x: vectors.ring.end.x - vectors.ring.start.x,
+              y: vectors.ring.end.y - vectors.ring.start.y
+            });
+
+            const cosPinky = calculateCosine(indexVector, {
+              x: vectors.pinky.end.x - vectors.pinky.start.x,
+              y: vectors.pinky.end.y - vectors.pinky.start.y
+            });
+
+            // Sumar los cosenos y verificar si está apuntando
+            const cosSum = cosMiddle + cosRing + cosPinky;
+
+            // Si la suma de los cosenos es aproximadamente -3, la mano está apuntando
+            const isPointing = cosSum < -2.1 && cosSum > -3.2;
+
+            // Si la mano está apuntando, dibujar el punto amarillo en la punta del índice
+            if (isPointing) {
+              const indexTip = landmarks[8]; // Punta del dedo índice
+              const canvasX = indexTip.x * canvas.width;
+              const canvasY = indexTip.y * canvas.height;
+
+              // Dibujar un círculo amarillo en la punta del dedo índice
+              canvasCtx.strokeStyle = "#FFFF00"; // Color amarillo para el borde del círculo
+              canvasCtx.lineWidth = 4;
+              canvasCtx.beginPath();
+              canvasCtx.arc(canvasX, canvasY, 10, 0, 2 * Math.PI); // Dibuja un círculo con radio 10
+              canvasCtx.stroke();
+            }
+          }
+        }
+      }
+
+      // Call this function again for the next frame
+      requestAnimationFrame(predictVideo);
+    }
+
+    // Wait for the video to start loading before starting the frame prediction
+    video.addEventListener("play", () => {
+      // Start processing video frames when the video starts playing
+      requestAnimationFrame(predictVideo);
+    });
+
+  </script>
+</body>
+
+</html>
