@@ -91,3 +91,11 @@ Se evidencia que a pesar de que se llega a un modelo muchísimo más simple que 
             dropout(0.5)
             return model;
       Al poner un dropout del 50 %, el resultado no cambió. Este valor del dropout se varió entre el 20% y el 50% para las 3 capas y el resultado no fue distinto.
+
+  - Por ultimo, se verifica el codigo inicial, y se verifica que el procesamiento de la infrmacion es correcto, ya que los datos de la imagen estan normalizados correctamente (se divide entre 255) y se leen las imagenes de la misma forma en la que están distribuidas originalemnte en el dataset.
+
+En conclusión, se verificaron y modificaron convenientemente un buena cantidad de parámetros de la red convolucional con el fin de encontrar un mejor modelo. Sin embargo, el resultado siempre se mantuvo exactamente igual. Lo que indica que el problema está fundamentalmente en la base de datos. 
+  
+
+
+
