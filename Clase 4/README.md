@@ -35,4 +35,59 @@ Se evidencia que a pesar de que se llega a un modelo muchísimo más simple que 
 
 - Se verifican las funciones de activación utilizadas: para las capas de entrada e intermedias, se tiene la función de activación tangente hiperbolica. La literatura indica que esta función puede limitar el "performance" de estas redes neuronales en muchos casos. Normalmente se utiliza la función Relu, ya que generalente generaliza mejor para aplicaciones en deep learning.
 
-  - Se cambiaron las funciones de actvación a "Relu" y el comportamiento de la presición al 90% no cambió. Lo que indica que la limitación no está dada por la función de activación utilizada.
+  - Se cambiaron las funciones de actvación a "Relu":
+    - // First convolution layer
+      model.add(tf.layers.conv2d({
+        inputShape: [28, 28, 1],
+        filters: 6,
+        kernelSize: 5,
+        activation: 'relu',
+        padding: 'same'
+      }));
+      // Fully connected layers
+      model.add(tf.layers.dense({ units: 120, activation: 'relu' }));
+      model.add(tf.layers.dense({ units: 84, activation: 'relu' }));
+      
+    El comportamiento de la presición al 90% no cambió. Lo que indica que la limitación no está dada por la función de activación utilizada.
+ 
+- Las capas de pooling están configuradas como "average pooling". Sin embargo, generalmente Max pooling es más efectivo que average pooling porque conserva las características más prominentes, como bordes y patrones clave, mientras que average pooling suaviza la información unicamente.
+
+  - Se procede a setear las capas de pooling como "maxPooling"ya que puede mejorar la capacidad del modelo para generalizar y puede aumentar la precisión.
+    - model.add(tf.layers.maxPooling2d({ poolSize: 2, strides: 2 }));
+    El resultado se mantiene igual.
+
+- La siguiente verificación fue añadir capas de dropout a la red, ya que estas nos ayudan a prevenir el sobreajuste al "apagar" aleatoriamente un porcentaje de neuronas durante el entrenamiento. Se optó por añadir 3 capas de dropout, una despues de cada capa convolucional y otra despues de la salida. Se pone un valor de 50% de dropout ya que es un valor tipicamente utilizado.
+          - // Define the LeNet model
+          function createLeNetModel() {
+            const model = tf.sequential();
+      
+            // First convolution layer
+            model.add(tf.layers.conv2d({
+              inputShape: [28, 28, 1],
+              filters: 6,
+              kernelSize: 5,
+              activation: 'relu',
+              padding: 'same'
+            }));
+            dropout(0.5)
+            model.add(tf.layers.maxPooling2d({ poolSize: 2, strides: 2 }));
+      
+            // Second convolution layer
+            model.add(tf.layers.conv2d({
+              filters: 16,
+              kernelSize: 5,
+              activation: 'relu'
+            }));
+            dropout(0.5)
+            model.add(tf.layers.maxPooling2d({ poolSize: 2, strides: 2 }));
+      
+            // Flatten layer
+            model.add(tf.layers.flatten());
+      
+            // Fully connected layers
+            model.add(tf.layers.dense({ units: 120, activation: 'relu' }));
+            model.add(tf.layers.dense({ units: 84, activation: 'relu' }));
+            model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
+            dropout(0.5)
+            return model;
+      Al poner un dropout del 50 %, el resultado no cambió. Este valor del dropout se varió entre el 20% y el 50% para las 3 capas y el resultado no fue distinto.
