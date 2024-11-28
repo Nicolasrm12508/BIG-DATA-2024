@@ -6,7 +6,7 @@ Reto - 90 % de Acurrancy
 
 - Se decide aumentar el numero de epocas a 20 con el fin de evaluar si el modelo le hacen falta más epocas (más entrenamineto) para obtener un mejor resultado. En la siguiente grafica se presenta el resultado obtenido:
 
-  ----------------------------------------------grafica------------------
+  [Grafica](https://drive.google.com/file/d/1IHBH0sGvojEu6ZUMuCIL4J_OXfQSl2Mz/view?usp=sharing)
   
 - Debido a que el resultado obtenido es exactamente igual al obtenido en la primera prueba se procedió a empezar a suprimir capas existentes de la red neuronal. El comportaminto debería cambiar, asi fuese de foroma mínima, al empezar a suprimir capas. Las capas originales de la red neuronal se ilustran en el siguiente codigo resumido:
 
